@@ -1,12 +1,12 @@
 {
-  "name": "first-project",
-  "description": "No description",
+  "name": "Simple Timer",
+  "description": "Just a simple timer.",
   "slug": "first-project",
   "privacy": "public",
   "sdkVersion": "16.0.0",
   "version": "1.0.0",
   "orientation": "portrait",
-  "primaryColor": "#cccccc",
+  "primaryColor": "#03a9f4",
   "icon": "./assets/icons/app-icon.png",
   "notification": {
     "icon": "./assets/icons/notification-icon.png",
@@ -21,5 +21,8 @@
   },
   "ios": {
     "supportsTablet": true
+  },
+  "android": {
+    "package": "ro.locoman.timerapp"
   }
 }
