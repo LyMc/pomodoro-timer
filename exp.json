@@ -1,20 +1,20 @@
 {
-  "name": "Simple Timer",
-  "description": "Just a simple timer.",
+  "name": "Pomadoro Timer",
+  "description": "Just a simple pomodoro timer.",
   "slug": "first-project",
   "privacy": "public",
   "sdkVersion": "16.0.0",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "orientation": "portrait",
   "primaryColor": "#03a9f4",
   "icon": "./assets/icons/app-icon.png",
   "notification": {
-    "icon": "./assets/icons/notification-icon.png",
-    "color": "#000000"
+    "icon": "./assets/icons/app-icon.png",
+    "color": "#03a9f4"
   },
   "loading": {
-    "icon": "./assets/icons/loading-icon.png",
-    "hideExponentText": false
+    "icon": "./assets/icons/app-icon.png",
+    "hideExponentText": true
   },
   "packagerOpts": {
     "assetExts": ["ttf"]
@@ -23,6 +23,6 @@
     "supportsTablet": true
   },
   "android": {
-    "package": "ro.locoman.timerapp"
+    "package": "ro.locoman.pomodoro"
   }
 }
