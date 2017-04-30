@@ -10,16 +10,18 @@ import {
   Linking,
   ViewPagerAndroid,
   Slider,
+  AsyncStorage,
 } from 'react-native'
 import DrawerLayout from 'react-native-drawer-layout'
 const TOMATO = '🍅'
-const WORKTIME = 20
-const RELAXTIME = 5
+let WORKTIME = 20
+let RELAXTIME = 4
 
 export default class HomeScreen extends React.Component {
   constructor() {
     super()
     this.state = {
+      loading: true,
       time: 0,
       timerState: 0,
       relaxTime: 0,
@@ -32,6 +34,7 @@ export default class HomeScreen extends React.Component {
     this.drawerLayout = null
   }
   componentWillMount() {
+    this.getInitialState().done()
     Expo.Notifications.addListener(() => {
       this.setState({
         time: 0,
@@ -40,6 +43,85 @@ export default class HomeScreen extends React.Component {
         relaxTimerState: 0,
       })
     })
+  }
+  saveToStorage = async () => {
+    const value = {
+      workTime: this.state.workTime,
+      relaxTime: this.state.relTime,
+      workTimestamp: this.state.time ? new Date().getTime() + this.state.time * 1000 : 0,
+      relaxTimestamp: this.state.relaxTime ? new Date().getTime() + this.state.relaxTime * 1000 : 0,
+    }
+    try {
+      await AsyncStorage.setItem('state', JSON.stringify(value))
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  getInitialState = async () => {
+    let value = null
+    try {
+      value = await AsyncStorage.getItem('state')
+      if (value) {
+        value = JSON.parse(value)
+        let state = {}
+        WORKTIME = value.workTime
+        RELAXTIME = value.relaxTime
+        state.workTime = value.workTime
+        state.relTime = value.relaxTime
+        state.time = 0
+        state.timerState = 0
+        state.relaxTime = 0
+        state.relaxTimerState = 0
+        let page = 0
+        if (value.workTimestamp) {
+          const workTime = (Math.floor((value.workTimestamp - new Date().getTime()) / 1000) / 60)
+          if (workTime > 0) {
+            state.time = workTime
+            state.timerState = 1
+            page = 1
+          } else {
+            state.relaxTime = value.relaxTime
+            state.relaxTimerState = 1
+            page = 2
+          }
+        } else if (value.relaxTimestamp) {
+          const relaxTime = (Math.floor((value.relaxTimestamp - (new Date()).getTime()) / 1000) / 60)
+          if (relaxTime > 0) {
+            state.relaxTime = relaxTime
+            state.relaxTimerState = 1
+            page = 2
+          } else {
+            state.time = value.workTime
+            state.timerState = 1
+            page = 1
+          }
+        }
+        state.loading = false
+        this.setState(state, () => this.setCurrentPage(page))
+      } else {
+        this.setState({
+          loading: false,
+        })
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
+  setCurrentPage(page) {
+    switch(page) {
+      case 1:
+        this.setTimer(this.state.time)
+        this.relaxSetTimer(0)
+        break
+      case 2:
+        this.setTimer(0)
+        this.relaxSetTimer(this.state.relaxTime)
+        break
+      default:
+        this.setTimer(0)
+        this.relaxSetTimer(0)
+    }
+    this.pager.setPage(page)
   }
   runTimer() {
     if (this.state.time > 0) {
@@ -68,13 +150,14 @@ export default class HomeScreen extends React.Component {
     removeNotification && Expo.Notifications.cancelAllScheduledNotificationsAsync()
   }
   resumeTimer() {
-    if (this.state.time === 0) {
+    if (this.state.time <= 0) {
       return
     }
     this.timerId = setInterval(this.runTimer.bind(this), 1000)
     this.setState({
       timerState: 1,
     })
+    this.saveToStorage().done()
     Expo.Notifications.scheduleLocalNotificationAsync({
       title: 'Ready to relax?',
       body: 'Click to open.',
@@ -124,6 +207,7 @@ export default class HomeScreen extends React.Component {
     this.setState({
       relaxTimerState: 1,
     })
+    this.saveToStorage().done()
     Expo.Notifications.scheduleLocalNotificationAsync({
       title: 'Ready to work?',
       body: 'Click to open.',
@@ -138,7 +222,6 @@ export default class HomeScreen extends React.Component {
   relaxRenderTime() {
     return ('0' + Math.floor(this.state.relaxTime / 60)).slice(-2) + ':' + ('0' + this.state.relaxTime % 60).slice(-2)
   }
-
 
   renderMenu() {
     return (
@@ -229,7 +312,7 @@ export default class HomeScreen extends React.Component {
     )
   }
 
-  render() {
+  renderScreen() {
     return (
       <View style={{ flex: 1 }}>
         <DrawerLayout
@@ -399,6 +482,17 @@ export default class HomeScreen extends React.Component {
         </DrawerLayout>
       </View>
     )
+  }
+  render() {
+    return this.state.loading
+      ? <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      ><Text>Loading...</Text></View>
+      : this.renderScreen()
   }
 }
 
