@@ -20,7 +20,8 @@
     "assetExts": ["ttf"]
   },
   "ios": {
-    "supportsTablet": true
+    "supportsTablet": true,
+    "bundleIdentifier": "ro.locoman.pomodoro"
   },
   "android": {
     "package": "ro.locoman.pomodoro"
